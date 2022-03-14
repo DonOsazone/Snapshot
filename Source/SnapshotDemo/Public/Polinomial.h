@@ -14,6 +14,8 @@ public:
 	Polinomial();
 	~Polinomial();
 
+	Polinomial operator+(const Polinomial& p);
+
 	std::vector<int> content;
 };
 
