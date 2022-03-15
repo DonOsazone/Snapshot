@@ -3,19 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include<vector>
 
 /**
  * 
  */
-class SNAPSHOTDEMO_API Polinomial
+class SNAPSHOTDEMO_API FPolinomial
 {
 public:
-	Polinomial();
-	~Polinomial();
+	FPolinomial();
+	FPolinomial(TArray<double> &Content);
+	~FPolinomial();
 
-	Polinomial operator+(const Polinomial& p);
+	FPolinomial operator+(const FPolinomial& p);
+	FPolinomial operator+(const double p);
 
-	std::vector<int> content;
+	TArray<double> Content;
 };
 
