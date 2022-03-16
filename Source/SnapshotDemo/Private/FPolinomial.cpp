@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Polinomial.h"
+#include "FPolinomial.h"
 
 FPolinomial::FPolinomial()
 {
