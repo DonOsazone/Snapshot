@@ -4,61 +4,66 @@
 
 #include "CoreMinimal.h"
 
+
 /**
- * 
+ * @brief 分数结构
+ * 提供基本的分数运算，以分数形式存储
  */
 struct SNAPSHOTDEMO_API FFraction
 {
-	uint32 Integer;
-	uint32 Numerator;
+	/**
+	 * @brief 分数分子
+	 */
+	int32 Numerator;
+	/**
+	 * @brief 分数分母
+	 */
 	uint32 Denominator;
-
-	bool bIsPositiveOrZero;
 
 	FFraction();
 	FFraction(const int32 Integer);
 	FFraction(const int32 Numerator, const int32 Denominator);
-	FFraction(const int32 Integer, const int32 Numerator, const int32 Denominator);
+	FFraction(const FFraction& Fract);
 
-	FFraction operator+ (const int32 p);
-	FFraction operator+ (const FFraction& fract);
-	FFraction operator+=(const int32 p);
-	FFraction operator+=(const FFraction& fract);
+	FFraction	operator+	(const int32 Integer) const;
+	FFraction	operator+	(const FFraction& Fract) const;
+	FFraction&	operator+=	(const int32 Integer);
+	FFraction&	operator+=	(const FFraction& Fract);
 
-	FFraction operator- (const int32 p);
-	FFraction operator- (const FFraction& fract);
-	FFraction operator-=(const int32 p);
-	FFraction operator-=(const FFraction& fract);
+	FFraction	operator-	(const int32 Integer) const;
+	FFraction	operator-	(const FFraction& Fract) const;
+	FFraction&	operator-=	(const int32 Integer);
+	FFraction&	operator-=	(const FFraction& Fract);
 
-	FFraction operator* (const int32 p);
-	FFraction operator* (const FFraction& fract);
-	FFraction operator*=(const int32 p);
-	FFraction operator*=(const FFraction& fract);
+	FFraction	operator*	(const int32 Integer) const;
+	FFraction	operator*	(const FFraction& Fract) const;
+	FFraction&	operator*=	(const int32 Integer);
+	FFraction&	operator*=	(const FFraction& Fract);
 
-	FFraction operator/ (const int32 p);
-	FFraction operator/ (const FFraction& fract);
-	FFraction operator/=(const int32 p);
-	FFraction operator/=(const FFraction& fract);
+	FFraction	operator/	(const int32 Integer) const;
+	FFraction	operator/	(const FFraction& Fract) const;
+	FFraction&	operator/=	(const int32 Integer);
+	FFraction&	operator/=	(const FFraction& Fract);
 
-	FFraction operator= (const int32 p);
-	FFraction operator= (const FFraction& fract);
+	FFraction&	operator=	(const int32 Integer);
+	FFraction&	operator=	(const FFraction& Fract);
 
-	FFraction operator- ();
+	FFraction	operator-	() const;
 
-	FFraction operator< (const int32 p);
-	FFraction operator< (const FFraction& fract);
+	bool		operator<	(const int32 Integer) const;
+	bool		operator<	(const FFraction& Fract) const;
 
-	FFraction operator<=(const int32 p);
-	FFraction operator<=(const FFraction& fract);
+	bool		operator<=	(const int32 Integer) const;
+	bool		operator<=	(const FFraction& Fract) const;
 
-	FFraction operator> (const int32 p);
-	FFraction operator> (const FFraction& fract);
-
-	FFraction operator>=(const int32 p);
-	FFraction operator>=(const FFraction& fract);
-
-	FFraction operator==(const int32 p);
-	FFraction operator==(const FFraction& fract);
+	bool		operator>	(const int32 Integer) const;
+	bool		operator>	(const FFraction& Fract) const;
+	
+	bool		operator>=	(const int32 Integer) const;
+	bool		operator>=	(const FFraction& Fract) const;
+	
+	bool		operator==	(const int32 Integer) const;
+	bool		operator==	(const FFraction& Fract) const;
 
 
 	~FFraction();

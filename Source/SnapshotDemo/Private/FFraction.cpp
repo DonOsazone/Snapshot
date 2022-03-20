@@ -5,233 +5,328 @@
 
 
 // 辗转相除法求最大公约数
-uint32 gcd(uint32 n, uint32 m)
+int32 GCD(int32 n, int32 m)
 {
-	return m == 0 ? n : gcd(m, n % m);
+	return m == 0 ? n : GCD(m, n % m);
 }
 
+inline int32 Abs(int32 n)
+{
+	return (n >= 0 ? n : -n);
+}
 
 FFraction::FFraction()
 {
-	this->Integer = 0;
 	this->Numerator = 0;
 	this->Denominator = 1;
-	this->bIsPositiveOrZero = true;
 }
 
 FFraction::FFraction(const int32 Integer)
 {
-	this->Integer = Integer;
-	this->Numerator = 0;
+	this->Numerator = Integer;
 	this->Denominator = 1;
-	this->bIsPositiveOrZero = true;
 }
 
 FFraction::FFraction(const int32 Numerator, const int32 Denominator)
 {
-	if (Denominator == 0) {
+	if (Denominator == 0)
+	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("错误：分母为0"));
 		// --TODO!
 		// 错误处理部分的其他代码完成后，此处接入那里
 
-		this->Integer = 0;
 		this->Numerator = 0;
 		this->Denominator = 1;
-		this->bIsPositiveOrZero = true;
 	}
-	else {
-		uint32 _n = (uint32)(Numerator>=0?Numerator:-Numerator);
-		uint32 _d = (uint32)(Denominator >= 0 ? Denominator : -Denominator);
-
-		this->Integer = _n / _d;
-		
-		uint32 _gcd = gcd((_n % _d), _d);
-
-		this->Numerator = _n / _gcd;
-		this->Denominator = _d / _gcd;
-
-		this->bIsPositiveOrZero = (Numerator >= 0) == (Denominator >= 0);
+	else
+	{
+		const int32 gcd = GCD(Abs(Numerator), Abs(Denominator));
+		if (Denominator > 0)
+		{
+			this->Numerator = Numerator / gcd;
+			this->Denominator = Denominator / gcd;
+		}
+		else
+		{
+			this->Numerator = -Numerator / gcd;
+			this->Denominator = -Denominator / gcd;
+		}
 	}
 }
 
-FFraction::FFraction(const int32 Integer, const int32 Numerator, const int32 Denominator)
+FFraction::FFraction(const FFraction& Fract)
 {
-	if (Denominator == 0) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("错误：分母为0"));
+	this->Numerator = Fract.Numerator;
+	this->Denominator = Fract.Denominator;
+}
+
+FFraction FFraction::operator+(const int32 Integer) const
+{
+	return FFraction(
+		this->Numerator + Integer * this->Denominator,
+		this->Denominator
+	);
+}
+
+FFraction FFraction::operator+(const FFraction& Fract) const
+{
+	return FFraction(
+		this->Numerator * Fract.Denominator + Fract.Numerator * this->Denominator,
+		this->Denominator * Fract.Denominator
+	);
+}
+
+FFraction& FFraction::operator+=(const int32 Integer)
+{
+	this->Numerator += Integer * this->Denominator;
+	return *this;
+}
+
+FFraction& FFraction::operator+=(const FFraction& Fract)
+{
+	const int32 n = this->Numerator * Fract.Denominator + Fract.Numerator * this->Denominator;
+	const int32 d = this->Denominator * Fract.Denominator;
+	const int32 gcd = GCD(Abs(n), Abs(d));
+	this->Numerator = n / gcd;
+	this->Denominator = d / gcd;
+	return *this;
+}
+
+FFraction FFraction::operator-(const int32 Integer) const
+{
+	return FFraction(
+		this->Numerator - Integer * this->Denominator,
+		this->Denominator
+	);
+}
+
+FFraction FFraction::operator-(const FFraction& Fract) const
+{
+	return FFraction(
+		this->Numerator * Fract.Denominator - Fract.Numerator * this->Denominator,
+		this->Denominator * Fract.Denominator
+	);
+}
+
+FFraction& FFraction::operator-=(const int32 Integer)
+{
+	this->Numerator += Integer * this->Denominator;
+	return *this;
+}
+
+FFraction& FFraction::operator-=(const FFraction& Fract)
+{
+	const int32 n = this->Numerator * Fract.Denominator - Fract.Numerator * this->Denominator;
+	const int32 d = this->Denominator * Fract.Denominator;
+	const int32 gcd = GCD(Abs(n), Abs(d));
+	this->Numerator = n / gcd;
+	this->Denominator = d / gcd;
+	return *this;
+}
+
+FFraction FFraction::operator*(const int32 Integer) const
+{
+	return FFraction(
+		this->Numerator * Integer,
+		this->Denominator
+	);
+}
+
+FFraction FFraction::operator*(const FFraction& Fract) const
+{
+	return FFraction(
+		this->Numerator * Fract.Numerator,
+		this->Denominator * Fract.Denominator
+	);
+}
+
+FFraction& FFraction::operator*=(const int32 Integer)
+{
+	const int32 gcd = GCD(this->Denominator, Abs(Integer));
+	this->Denominator /= gcd;
+	this->Numerator *= (Integer / gcd);
+	return *this;
+}
+
+FFraction& FFraction::operator*=(const FFraction& Fract)
+{
+	const int32 gcd1 = GCD(this->Denominator, Abs(Fract.Numerator));
+	const int32 gcd2 = GCD(Fract.Denominator, Abs(this->Numerator));
+	this->Denominator = this->Denominator * Fract.Denominator / (gcd1 * gcd2);
+	this->Numerator = this->Numerator * Fract.Numerator / (gcd1 * gcd2);
+	return *this;
+}
+
+FFraction FFraction::operator/(const int32 Integer) const
+{
+	if (Integer == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("错误：除以零"));
 		// --TODO!
 		// 错误处理部分的其他代码完成后，此处接入那里
-
-		this->Integer = 0;
-		this->Numerator = 0;
-		this->Denominator = 1;
-		this->bIsPositiveOrZero = true;
 	}
-	else {
-		uint32 _n = (uint32)(Numerator >= 0 ? Numerator : -Numerator);
-		uint32 _d = (uint32)(Denominator >= 0 ? Denominator : -Denominator);
-		uint32 _i = (uint32)(Integer >= 0 ? Integer : -Integer);
-
-		this->Integer = _i + _n / _d;
-
-		uint32 _gcd = gcd((_n % _d), _d);
-
-		this->Numerator = _n / _gcd;
-		this->Denominator = _d / _gcd;
-
-		this->bIsPositiveOrZero = (Integer >= 0) == (Numerator >= 0) == (Denominator >= 0);
+	else
+	{
+		if (Integer < 0)
+		{
+			return FFraction(
+				-this->Numerator,
+				this->Denominator * (-Integer)
+			);
+		}
+		return FFraction(
+			this->Numerator,
+			this->Denominator * Integer
+		);
 	}
+	return FFraction(0);
 }
 
-FFraction FFraction::operator+(const int32 p)
+FFraction FFraction::operator/(const FFraction& Fract) const
 {
-	int32 n = ((int32)(this->Integer * this->Denominator + this->Numerator)) * (this->bIsPositiveOrZero ? 1 : -1) + p;
-	return FFraction(n, this->Denominator);
+	if (Fract.Numerator == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("错误：除以零"));
+		// --TODO!
+		// 错误处理部分的其他代码完成后，此处接入那里
+	}
+	else
+	{
+		if (Fract.Numerator < 0)
+		{
+			return FFraction(
+				this->Numerator * (-Fract.Denominator),
+				this->Denominator * (-Fract.Numerator)
+			);
+		}
+		return FFraction(
+			this->Numerator * Fract.Denominator,
+			this->Denominator * Fract.Numerator
+		);
+	}
+	return FFraction(0);
 }
 
-FFraction FFraction::operator+(const FFraction& fract)
+FFraction& FFraction::operator/=(const int32 Integer)
 {
-	// 首先，将二者强制转换为假分数
-	int32 n1 = ((int32)(this->Integer * this->Denominator + this->Numerator)) * (this->bIsPositiveOrZero ? 1 : -1);
-	int32 n2 = ((int32)(fract.Integer * fract.Denominator + fract.Numerator)) * (fract.bIsPositiveOrZero ? 1 : -1);
-
-	int32 n = n1 * fract.Denominator + n2 * this->Denominator;	
-
-	return FFraction(n, this->Denominator * fract.Denominator);
+	if (Integer == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("错误：除以零"));
+		// --TODO!
+		// 错误处理部分的其他代码完成后，此处接入那里
+	}
+	else
+	{
+		const int32 gcd = GCD(Abs(this->Numerator), Abs(Integer));
+		if (Integer < 0)
+		{
+			this->Numerator /= -gcd;
+			this->Denominator *= -(Integer / gcd);
+			return *this;
+		}
+		this->Numerator /= gcd;
+		this->Denominator *= Integer / gcd;
+		return *this;
+	}
+	this->Numerator = 0;
+	this->Denominator = 1;
+	return *this;
 }
 
-FFraction FFraction::operator+=(const int32 p)
+FFraction& FFraction::operator/=(const FFraction& Fract)
 {
-	return FFraction();
+	if (Fract.Numerator == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("错误：除以零"));
+		// --TODO!
+		// 错误处理部分的其他代码完成后，此处接入那里
+	}
+	else
+	{
+		const int32 gcd1 = GCD(Abs(this->Numerator), Abs(Fract.Numerator));
+		const int32 gcd2 = GCD(this->Denominator, Fract.Denominator);
+		if (Fract.Numerator < 0)
+		{
+			this->Numerator *= -Fract.Denominator / gcd1;
+			this->Denominator *= -Fract.Numerator / gcd2;
+			return *this;
+		}
+		this->Numerator *= Fract.Denominator / gcd1;
+		this->Denominator *= Fract.Numerator / gcd2;
+		return *this;
+	}
+	this->Numerator = 0;
+	this->Denominator = 1;
+	return *this;
 }
 
-FFraction FFraction::operator+=(const FFraction& fract)
+FFraction& FFraction::operator=(const int32 Integer)
 {
-	return FFraction();
+	this->Denominator = 1;
+	this->Numerator = Integer;
+	return *this;
 }
 
-FFraction FFraction::operator-(const int32 p)
+FFraction& FFraction::operator=(const FFraction& Fract)
 {
-	return FFraction();
+	this->Denominator = Fract.Denominator;
+	this->Numerator = Fract.Numerator;
+	return *this;
 }
 
-FFraction FFraction::operator-(const FFraction& fract)
+FFraction FFraction::operator-() const
 {
-	return FFraction();
+	return FFraction(-(this->Numerator), this->Denominator);
 }
 
-FFraction FFraction::operator-=(const int32 p)
+bool FFraction::operator<(const int32 Integer) const
 {
-	return FFraction();
+	return (this->Numerator < Integer * this->Denominator);
 }
 
-FFraction FFraction::operator-=(const FFraction& fract)
+bool FFraction::operator<(const FFraction& Fract) const
 {
-	return FFraction();
+	return (this->Numerator * Fract.Denominator < Fract.Numerator * this->Denominator);
 }
 
-FFraction FFraction::operator*(const int32 p)
+bool FFraction::operator<=(const int32 Integer) const
 {
-	return FFraction();
+	return (this->Numerator <= Integer * this->Denominator);
 }
 
-FFraction FFraction::operator*(const FFraction& fract)
+bool FFraction::operator<=(const FFraction& Fract) const
 {
-	return FFraction();
+	return (this->Numerator * Fract.Denominator <= Fract.Numerator * this->Denominator);
 }
 
-FFraction FFraction::operator*=(const int32 p)
+bool FFraction::operator>(const int32 Integer) const
 {
-	return FFraction();
+	return (this->Numerator > Integer * this->Denominator);
 }
 
-FFraction FFraction::operator*=(const FFraction& fract)
+bool FFraction::operator>(const FFraction& Fract) const
 {
-	return FFraction();
+	return (this->Numerator * Fract.Denominator > Fract.Numerator * this->Denominator);
 }
 
-FFraction FFraction::operator/(const int32 p)
+bool FFraction::operator>=(const int32 Integer) const
 {
-	return FFraction();
+	return (this->Numerator >= Integer * this->Denominator);
 }
 
-FFraction FFraction::operator/(const FFraction& fract)
+bool FFraction::operator>=(const FFraction& Fract) const
 {
-	return FFraction();
+	return (this->Numerator * Fract.Denominator >= Fract.Numerator * this->Denominator);
 }
 
-FFraction FFraction::operator/=(const int32 p)
+bool FFraction::operator==(const int32 Integer) const
 {
-	return FFraction();
+	return (this->Numerator == Integer * this->Denominator);
 }
 
-FFraction FFraction::operator/=(const FFraction& fract)
+bool FFraction::operator==(const FFraction& Fract) const
 {
-	return FFraction();
-}
-
-FFraction FFraction::operator=(const int32 p)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator=(const FFraction& fract)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator-()
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator<(const int32 p)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator<(const FFraction& fract)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator<=(const int32 p)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator<=(const FFraction& fract)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator>(const int32 p)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator>(const FFraction& fract)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator>=(const int32 p)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator>=(const FFraction& fract)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator==(const int32 p)
-{
-	return FFraction();
-}
-
-FFraction FFraction::operator==(const FFraction& fract)
-{
-	return FFraction();
+	return (this->Numerator == Fract.Numerator && this->Denominator == Fract.Denominator);
 }
 
 
