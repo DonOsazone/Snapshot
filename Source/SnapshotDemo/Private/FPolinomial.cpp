@@ -287,6 +287,11 @@ FPolinomial& FPolinomial::operator/=(const int32 Integer)
 {
 }
 
+FFraction& FPolinomial::operator[](const int32 Index)
+{
+	
+}
+
 bool FPolinomial::operator==(const FPolinomial& Polinomial) const
 {
 	if (Polinomial.Content.Num() != this->Content.Num())

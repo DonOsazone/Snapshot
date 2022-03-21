@@ -53,6 +53,8 @@ public:
 	FPolinomial&	operator/=(const FFraction& Fraction);
 	FPolinomial&	operator/=(const int32 Integer);
 
+	FFraction&		operator[](const int32 Index);
+
 	bool			operator == (const FPolinomial& Polinomial) const;
 	bool			operator == (const FFraction& Fraction) const;
 	bool			operator == (const int32 Integer)const;
