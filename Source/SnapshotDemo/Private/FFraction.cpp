@@ -329,6 +329,16 @@ bool FFraction::operator==(const FFraction& Fract) const
 	return (this->Numerator == Fract.Numerator && this->Denominator == Fract.Denominator);
 }
 
+bool FFraction::operator!=(const int32 Integer) const
+{
+	return (this->Numerator != Integer * this->Denominator);
+}
+
+bool FFraction::operator!=(const FFraction& Fract) const
+{
+	return (this->Numerator != Fract.Numerator || this->Denominator != Fract.Denominator);
+}
+
 
 FFraction::~FFraction()
 {

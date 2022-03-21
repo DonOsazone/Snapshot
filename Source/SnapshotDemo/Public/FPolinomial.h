@@ -12,10 +12,18 @@ class SNAPSHOTDEMO_API FPolinomial
 {
 public:
 	FPolinomial();
-	FPolinomial(TArray<FFraction> &Content);
+	FPolinomial(const TArray<FFraction> &Content);
+	FPolinomial(const TArray<FFraction>& NegativeContent, const TArray<FFraction>& PositiveContent);
 	~FPolinomial();
 	
-	TArray<FFraction> Content;
+	/**
+	 * @brief 多项式（正数域和零）
+	 */
+	TArray<FFraction> PositiveContent;
+	/**
+	 * @brief 多项式（负数域）
+	 */
+	TArray<FFraction> NegativeContent;
 	
 	FPolinomial		operator+(const FPolinomial& Polinomial) const;
 	FPolinomial		operator+(const FFraction& Fraction) const;

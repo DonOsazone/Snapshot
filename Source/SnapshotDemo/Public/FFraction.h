@@ -65,6 +65,9 @@ struct SNAPSHOTDEMO_API FFraction
 	bool		operator==	(const int32 Integer) const;
 	bool		operator==	(const FFraction& Fract) const;
 
+	bool		operator!=	(const int32 Integer) const;
+	bool		operator!=	(const FFraction& Fract) const;
+
 
 	~FFraction();
 };
