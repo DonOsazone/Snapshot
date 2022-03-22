@@ -5,7 +5,7 @@
 
 void HighZeroRemove(TArray<FFraction>& PolinomialContent)
 {
-	for (int32 i = PolinomialContent.Num(); i > 0; i++)
+	for (int32 i = PolinomialContent.Num() - 1; i > 0; i++)
 	{
 		if (PolinomialContent[i] == 0)
 		{
@@ -303,21 +303,26 @@ FPolinomial& FPolinomial::operator*=(const FPolinomial& Polinomial)
 
 FPolinomial& FPolinomial::operator*=(const FFraction& Fraction)
 {
-	for (int32 i = 0; i != this->Content.Num(); i++)
+	for (int32 i = 0; i != this->PositiveContent.Num(); i++)
 	{
-		this->Content[i] *= Fraction;
+		this->PositiveContent[i] *= Fraction;
 	}
-	HighZeroRemove(this->Content);
+	HighZeroRemove(this->PositiveContent);
 	return *this;
 }
 
 FPolinomial& FPolinomial::operator*=(const int32 Integer)
 {
-	for (int32 i = 0; i != this->Content.Num(); i++)
+	for (int32 i = 0; i != this->PositiveContent.Num(); i++)
 	{
-		this->Content[i] *= Integer;
+		this->PositiveContent[i] *= Integer;
 	}
-	HighZeroRemove(this->Content);
+	HighZeroRemove(this->PositiveContent);
+	for (int32 i = 0; i != this->NegativeContent.Num(); i++)
+	{
+		this->NegativeContent[i] *= Integer;
+	}
+	HighZeroRemove(this->NegativeContent);
 	return *this;
 }
 
@@ -351,8 +356,6 @@ FFraction& FPolinomial::operator[](const int32 Index)
 	{
 		if (Index >= 0)
 		{
-			//FFraction mmm = this->PositiveContent.GetData()[Index];
-			//return mmm;
 			return this->PositiveContent[Index];
 		}
 		return this->NegativeContent[-Index];
@@ -368,8 +371,6 @@ const FFraction& FPolinomial::operator[](const int32 Index) const
 	{
 		if (Index >= 0)
 		{
-			//FFraction mmm = this->PositiveContent.GetData()[Index];
-			//return mmm;
 			return this->PositiveContent[Index];
 		}
 		return this->NegativeContent[-Index];
@@ -398,8 +399,18 @@ bool FPolinomial::operator==(const FPolinomial& Polinomial) const
 
 bool FPolinomial::operator==(const FFraction& Fraction) const
 {
+	return (
+		this->NegativeContent.Num() <= 1 &&
+		this->PositiveContent.Num() == 1 &&
+		this->PositiveContent[0] == Fraction
+	);
 }
 
 bool FPolinomial::operator==(const int32 Integer) const
 {
+	return (
+		this->NegativeContent.Num() <= 1 &&
+		this->PositiveContent.Num() == 1 &&
+		this->PositiveContent[0] == Integer
+	);
 }
