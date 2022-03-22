@@ -41,6 +41,15 @@ FPolinomial::~FPolinomial()
 {
 }
 
+inline int32 FPolinomial::PositiveLimit() const
+{
+	return this->PositiveContent.Num() - 1;
+}
+
+inline int32 FPolinomial::NegativeLimit() const
+{
+	return 1 - this->NegativeContent.Num();
+}
 
 FPolinomial FPolinomial::operator+(const FPolinomial& Polinomial) const
 {
@@ -120,7 +129,7 @@ FPolinomial& FPolinomial::operator+=(const FPolinomial& Polinomial)
 		}
 		this->NegativeContent[i] += i > OtherNegativeLength ? 0 : Polinomial.NegativeContent[i];
 	}
-	
+
 	return *this;
 }
 
@@ -138,61 +147,94 @@ FPolinomial& FPolinomial::operator+=(const int32 Integer)
 
 FPolinomial FPolinomial::operator-(const FPolinomial& Polinomial) const
 {
-	const int32 SelfLength = this->Content.Num();
-	const int32 OtherLength = Polinomial.Content.Num();
-	const int32 MaxLength = (SelfLength > OtherLength ? SelfLength : OtherLength);
+	const int32 SelfPositiveLength = this->PositiveContent.Num();
+	const int32 OtherPositiveLength = Polinomial.PositiveContent.Num();
+	const int32 MaxPositiveLength = SelfPositiveLength > OtherPositiveLength ? SelfPositiveLength : OtherPositiveLength;
 
-	TArray<FFraction> TempResult;
-	for (int32 i = 0; i != MaxLength; i++)
+	const int32 SelfNegativeLength = this->NegativeContent.Num();
+	const int32 OtherNegativeLength = Polinomial.NegativeContent.Num();
+	const int32 MaxNegativeLength = SelfNegativeLength > OtherNegativeLength ? SelfNegativeLength : OtherNegativeLength;
+
+	TArray<FFraction> TempPositiveResult, TempNegativeResult;
+	for (int32 i = 0; i != MaxPositiveLength; i++)
 	{
-		TempResult.Add(
-			(i >= SelfLength ? 0 : this->Content[i])
+		TempPositiveResult.Add(
+			(i >= SelfPositiveLength ? 0 : this->PositiveContent[i])
 			-
-			(i >= OtherLength ? 0 : Polinomial.Content[i])
+			(i >= OtherPositiveLength ? 0 : Polinomial.PositiveContent[i])
+		);
+	}
+	for (int32 i = 1; i != MaxNegativeLength; i++)
+	{
+		TempNegativeResult.Add(
+			(i >= SelfNegativeLength ? 0 : this->NegativeContent[i])
+			-
+			(i >= OtherNegativeLength ? 0 : Polinomial.NegativeContent[i])
 		);
 	}
 
-	return FPolinomial(TempResult);
+	return FPolinomial(TempNegativeResult, TempPositiveResult);
 }
 
 FPolinomial FPolinomial::operator-(const FFraction& Fraction) const
 {
-	TArray<FFraction> TempResult = this->Content;
-	TempResult[0] -= Fraction;
+	TArray<FFraction> TempPositiveResult = this->PositiveContent;
+	TArray<FFraction> TempNegativeResult = this->NegativeContent;
 
-	return FPolinomial(TempResult);
+	TempPositiveResult[0] -= Fraction;
+
+	return FPolinomial(TempNegativeResult, TempPositiveResult);
 }
 
 FPolinomial FPolinomial::operator-(const int32 Integer) const
 {
-	TArray<FFraction> TempResult = this->Content;
-	TempResult[0] -= Integer;
+	TArray<FFraction> TempPositiveResult = this->PositiveContent;
+	TArray<FFraction> TempNegativeResult = this->NegativeContent;
 
-	return FPolinomial(TempResult);
+	TempPositiveResult[0] -= Integer;
+
+	return FPolinomial(TempNegativeResult, TempPositiveResult);
 }
 
 FPolinomial& FPolinomial::operator-=(const FPolinomial& Polinomial)
 {
-	const int32 SelfLength = this->Content.Num();
-	const int32 OtherLength = Polinomial.Content.Num();
-	const int32 MaxLength = (SelfLength > OtherLength ? SelfLength : OtherLength);
+	const int32 SelfPositiveLength = this->PositiveContent.Num();
+	const int32 OtherPositiveLength = Polinomial.PositiveContent.Num();
+	const int32 MaxPositiveLength = SelfPositiveLength > OtherPositiveLength ? SelfPositiveLength : OtherPositiveLength;
 
-	for (int32 i = 0; i != MaxLength; i++)
+	const int32 SelfNegativeLength = this->NegativeContent.Num();
+	const int32 OtherNegativeLength = Polinomial.NegativeContent.Num();
+	const int32 MaxNegativeLength = SelfNegativeLength > OtherNegativeLength ? SelfNegativeLength : OtherNegativeLength;
+
+	for (int32 i = 0; i != MaxPositiveLength; i++)
 	{
-		this->Content[i] -= i >= OtherLength ? 0 : Polinomial.Content[i];
+		if (i >= SelfPositiveLength)
+		{
+			this->PositiveContent.Add(FFraction(0));
+		}
+		this->PositiveContent[i] -= i > OtherPositiveLength ? 0 : Polinomial.PositiveContent[i];
 	}
+	for (int32 i = 1; i != MaxNegativeLength; i++)
+	{
+		if (i >= SelfNegativeLength)
+		{
+			this->NegativeContent.Add(FFraction(0));
+		}
+		this->NegativeContent[i] -= i > OtherNegativeLength ? 0 : Polinomial.NegativeContent[i];
+	}
+
 	return *this;
 }
 
 FPolinomial& FPolinomial::operator-=(const FFraction& Fraction)
 {
-	this->Content[0] -= Fraction;
+	this->PositiveContent[0] -= Fraction;
 	return *this;
 }
 
 FPolinomial& FPolinomial::operator-=(const int32 Integer)
 {
-	this->Content[0] -= Integer;
+	this->PositiveContent[0] -= Integer;
 	return *this;
 }
 
@@ -215,28 +257,44 @@ FPolinomial FPolinomial::operator*(const FPolinomial& Polinomial) const
 
 FPolinomial FPolinomial::operator*(const FFraction& Fraction) const
 {
-	TArray<FFraction> TempResult;
-	for (int32 i = 0; i != this->Content.Num(); i++)
+	TArray<FFraction> TempPositiveResult = TArray<FFraction>();
+	for (int32 i = 0; i != this->PositiveContent.Num(); i++)
 	{
-		TempResult.Add(
-			this->Content[i] * Fraction
+		TempPositiveResult.Add(
+			this->PositiveContent[i] * Fraction
 		);
 	}
 
-	return FPolinomial(TempResult);
+	TArray<FFraction> TempNegativeResult = TArray<FFraction>({FFraction()});
+	for (int32 i = 1; i != this->NegativeContent.Num(); i++)
+	{
+		TempNegativeResult.Add(
+			this->NegativeContent[i] * Fraction
+		);
+	}
+
+	return FPolinomial(TempPositiveResult);
 }
 
 FPolinomial FPolinomial::operator*(const int32 Integer) const
 {
-	TArray<FFraction> TempResult;
-	for (int32 i = 0; i != this->Content.Num(); i++)
+	TArray<FFraction> TempPositiveResult = TArray<FFraction>();
+	for (int32 i = 0; i != this->PositiveContent.Num(); i++)
 	{
-		TempResult.Add(
-			this->Content[i] * Integer
+		TempPositiveResult.Add(
+			this->PositiveContent[i] * Integer
 		);
 	}
 
-	return FPolinomial(TempResult);
+	TArray<FFraction> TempNegativeResult = TArray<FFraction>({FFraction()});
+	for (int32 i = 1; i != this->NegativeContent.Num(); i++)
+	{
+		TempNegativeResult.Add(
+			this->NegativeContent[i] * Integer
+		);
+	}
+
+	return FPolinomial(TempPositiveResult);
 }
 
 FPolinomial& FPolinomial::operator*=(const FPolinomial& Polinomial)
@@ -289,18 +347,48 @@ FPolinomial& FPolinomial::operator/=(const int32 Integer)
 
 FFraction& FPolinomial::operator[](const int32 Index)
 {
-	
+	if (Index >= -(this->NegativeContent.Num() - 1) && Index <= this->PositiveContent.Num() - 1)
+	{
+		if (Index >= 0)
+		{
+			//FFraction mmm = this->PositiveContent.GetData()[Index];
+			//return mmm;
+			return this->PositiveContent[Index];
+		}
+		return this->NegativeContent[-Index];
+	}
+	// --TODO
+	// 接入报错
+	return this->NegativeContent[0];
+}
+
+const FFraction& FPolinomial::operator[](const int32 Index) const
+{
+	if (Index >= -(this->NegativeContent.Num() - 1) && Index <= this->PositiveContent.Num() - 1)
+	{
+		if (Index >= 0)
+		{
+			//FFraction mmm = this->PositiveContent.GetData()[Index];
+			//return mmm;
+			return this->PositiveContent[Index];
+		}
+		return this->NegativeContent[-Index];
+	}
+	// --TODO
+	// 接入报错
+	return this->NegativeContent[0];
 }
 
 bool FPolinomial::operator==(const FPolinomial& Polinomial) const
 {
-	if (Polinomial.Content.Num() != this->Content.Num())
+	if (Polinomial.NegativeLimit() != this->NegativeLimit() ||
+		Polinomial.PositiveLimit() != this->PositiveLimit())
 	{
 		return false;
 	}
-	for (int32 i = 0; i != this->Content.Num(); i++)
+	for (int32 i = this->NegativeLimit(); i != this->PositiveLimit(); i++)
 	{
-		if (Polinomial.Content[i] != this->Content[i])
+		if ((*this)[i] != Polinomial[i])
 		{
 			return false;
 		}
